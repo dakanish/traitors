@@ -15,8 +15,10 @@ export default function App() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Play the Bradford roundtable audio track once right when they click Reveal your secret
     if (audioRef.current) {
-      audioRef.current.play().catch(() => console.log("Audio requires interaction first."));
+      audioRef.current.play().catch(() => {});
     }
     
     setLoading(true);
@@ -84,7 +86,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#4a021f] to-[#20000a] flex flex-col items-center justify-center p-4 text-white font-serif relative overflow-hidden">
-      <audio ref={audioRef} src="/spooky-theme.mp3" loop />
+      {/* Audio player linked to your bradford-roundtable.mp3 file */}
+      <audio ref={audioRef} src="/bradford-roundtable.mp3" />
 
       <div className="z-10 w-full max-w-md bg-[#2d0112]/95 p-8 rounded-lg border-2 border-[#e0660d]/30 shadow-[0_0_50px_rgba(0,0,0,0.9)] backdrop-blur-md">
         {!name ? (
