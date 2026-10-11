@@ -23,16 +23,17 @@ export default function App() {
     setError('');
 
     try {
+      // Fetch data directly from your Google Sheet 'Guests' tab
       const response = await fetch(`${SCRIPT_URL}?pin=${pin}`);
       const data = await response.json();
       
       if (data.success) {
         setName(data.name);
       } else {
-        setError('Identity not recognized. Try again.');
+        setError('Identity not recognised. Try again.');
       }
     } catch (err) {
-      setError('Connection lost to the castle. Try again.');
+      setError('Connection lost to the Bradford Court round table. Try again.');
     }
     
     setLoading(false);
@@ -43,6 +44,7 @@ export default function App() {
     setLoading(true);
 
     try {
+      // Post the RSVP directly to your Google Sheet 'RSVPs' tab
       await fetch(SCRIPT_URL, {
         method: 'POST',
         headers: {
@@ -56,30 +58,25 @@ export default function App() {
       });
       setSubmitted(true);
     } catch (err) {
+      // Even if network glitches slightly on CORS, Google often still logs it
       setSubmitted(true);
     }
     
     setLoading(false);
   };
 
-  const TraitorLogo = () => (
-    <svg width="75" height="90" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto mb-4 drop-shadow-[0_0_15px_rgba(217,119,6,0.4)]">
-      <path d="M50 5C25 5 12 25 12 55C12 75 22 95 32 110C35 115 38 118 42 118H58C62 118 65 115 68 110C78 95 88 75 88 55C88 25 75 5 50 5Z" fill="#D97706" fillOpacity="0.15" stroke="#D97706" strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M50 5L82 45C85 65 72 85 58 95C54 98 46 98 42 95C28 85 15 65 18 45L50 5Z" fill="#2A080C" stroke="#D97706" strokeWidth="2.5"/>
-      <path d="M30 42C35 38 45 35 50 35C55 35 65 38 70 42C75 52 72 72 58 78C54 80 46 80 42 78C28 72 25 52 30 42Z" fill="#150406"/>
-      <path d="M36 46C40 44 46 45 49 47C52 45 58 44 62 46" stroke="#D97706" strokeWidth="2" strokeLinecap="round"/>
-      <path d="M42 67C45 69 55 69 58 67" stroke="#D97706" strokeWidth="2" strokeLinecap="round"/>
-      <circle cx="50" cy="56" r="1.5" fill="#D97706"/>
-    </svg>
-  );
-
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#20000a] flex flex-col items-center justify-center p-4 text-center text-white font-serif">
-        <TraitorLogo />
+      <div className="min-h-screen bg-[#20000a] flex flex-col items-center justify-center p-4 text-center text-white">
+        <div className="w-32 h-32 text-[#EC8A22] mb-6">
+          <svg viewBox="0 0 100 100" fill="currentColor" className="w-full h-full">
+            <path d="M50,15 C20,40 25,65 50,85 C75,65 80,40 50,15 Z" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M50,16 C30,35 28,55 50,78 C72,55 70,35 50,16 Z M50,48 C43,48 40,54 41,58 C44,57 46,55 50,55 C54,55 56,57 59,58 C60,54 57,48 50,48 Z M50,60 C46,60 45,63 50,65 C55,63 54,60 50,60 Z" />
+          </svg>
+        </div>
         <h1 className="text-4xl font-serif text-[#EC8A22] mb-4 tracking-wider uppercase">Your Fate is Sealed.</h1>
         <p className="text-xl text-slate-300 font-serif max-w-sm">
-          {attending ? `The roundtable awaits, ${name}. Deception begins soon...` : `Cowardly, ${name}. You have chosen to watch from the shadows.`}
+          {attending ? `The final roundtable awaits, ${name}. Deception begins soon...` : `Cowardly, ${name}. You have chosen to watch from the shadows. I banish you forever.`}
         </p>
       </div>
     );
@@ -92,10 +89,15 @@ export default function App() {
       <div className="z-10 w-full max-w-md bg-[#2d0112]/95 p-8 rounded-lg border-2 border-[#e0660d]/30 shadow-[0_0_50px_rgba(0,0,0,0.9)] backdrop-blur-md">
         {!name ? (
           <form onSubmit={handleLogin} className="flex flex-col gap-6 items-center w-full">
-            <TraitorLogo />
+            <div className="w-24 h-24 text-[#EC8A22]">
+              <svg viewBox="0 0 100 100" fill="currentColor" className="w-full h-full">
+                <path d="M50,16 C23,37 25,62 50,82 C75,62 77,37 50,16 Z M50,22 C68,38 67,56 50,73 C33,56 32,38 50,22 Z" />
+                <path d="M50,48 C44,48 41,53 43,57 C45,56 47,54 50,54 C53,54 55,56 57,57 C59,53 56,48 50,48 Z M45,60 C48,60 48,61 50,61 C52,61 52,60 55,60 C55,62 52,64 50,64 C48,64 45,62 45,60 Z" />
+              </svg>
+            </div>
 
             <div className="text-center">
-              <h1 className="text-3xl font-bold tracking-widest text-slate-100 uppercase">The Castle Awaits</h1>
+              <h1 className="text-3xl font-bold tracking-widest text-slate-100 uppercase">The Bradford Court Round Table Awaits...</h1>
               <p className="text-sm text-slate-400 italic mt-2">Enter your secret code to reveal your invitation.</p>
             </div>
 
@@ -112,7 +114,7 @@ export default function App() {
             </div>
 
             <button type="submit" disabled={loading} className="w-full bg-[#350114] hover:bg-[#4a021f] disabled:bg-slate-900 text-[#EC8A22] border border-[#e0660d]/40 p-4 rounded uppercase tracking-widest font-bold transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-              {loading ? "Verifying..." : "Reveal Identity >"}
+              {loading ? "Verifying..." : "Reveal your secret"}
             </button>
           </form>
         ) : (
@@ -125,23 +127,23 @@ export default function App() {
               
               <div className="space-y-3 text-sm text-slate-200">
                 <div>
-                  <p className="font-bold text-[#EC8A22]">Banishment Burgundy Beef</p>
-                  <p className="text-xs text-slate-400 italic">Rich stew served with rustic harvest vegetables</p>
+                  <p className="font-bold text-[#EC8A22]">Banishement Jack O'Bert</p>
+                  <p className="text-xs text-slate-400 italic">A carved disguise hiding a bubbling secret. Molten Camembert and roasted pumpkin, served with baguette for the ultimate round table dip</p>
                 </div>
                 <div className="border-t border-slate-900/60 pt-2">
-                  <p className="font-bold text-[#EC8A22]">Devious Dark Chocolate Torte</p>
-                  <p className="text-xs text-slate-400 italic">Served with raspberry coulis from the shadows</p>
+                  <p className="font-bold text-[#EC8A22]">Traitor's Tipple</p>
+                  <p className="text-xs text-slate-400 italic">Innocent on the surface, but crisp and deceptive. A refreshing pour to keep your wits sharp during the final banishment.</p>
                 </div>
                 <div className="border-t border-slate-900/60 pt-2">
-                  <p className="font-bold text-[#EC8A22]">Faithful Feast Platters</p>
-                  <p className="text-xs text-slate-400 italic">Assorted cheeses, bread, and poison-free bites</p>
+                  <p className="font-bold text-[#EC8A22]">Shield & Provisions</p>
+                  <p className="text-xs text-slate-400 italic">Arm yourself for the final: BYOB and extra snacks welcome at the castle doors.</p>
                 </div>
               </div>
             </div>
 
             <div className="text-center text-slate-300 text-sm space-y-1 my-2 border-y border-[#e0660d]/10 py-3">
-              <p className="text-[#EC8A22] font-bold text-lg">Saturday, 8:00 PM</p>
-              <p>The Castle (Our Place)</p>
+              <p className="text-[#EC8A22] font-bold text-lg">Friday, 30th October, 7:00 PM</p>
+              <p>Bradford Court Round Table</p>
             </div>
 
             <div className="flex gap-4">
@@ -168,7 +170,7 @@ export default function App() {
                   value={allergies}
                   onChange={(e) => setAllergies(e.target.value)}
                   className="bg-[#1b000a] border border-slate-700 p-3 rounded outline-none focus:border-[#EC8A22] text-sm text-slate-200 resize-none h-20"
-                  placeholder="e.g. No allergies, ready to dine..."
+                  placeholder="... tbh, probably won't accomodate for, just BYO"
                 />
               </div>
             )}
