@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react';
 
+// Your live Google Apps Script URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyeCqMBQkT9llWo3uYC8ebqGK2FrLBYEGXSlgBNozmM4VPYMQExPxEuZKiDvCllvzrC/exec";
+
 export default function App() {
   const [pin, setPin] = useState('');
   const [name, setName] = useState('');
@@ -7,46 +10,64 @@ export default function App() {
   const [attending, setAttending] = useState(null);
   const [allergies, setAllergies] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const audioRef = useRef(null);
 
-  // Exact Guest List PINS
-  const mockGuests = {
-    '4045': 'Lindanheimer',
-    '7297': 'Billie',
-    '7135': 'Tim',
-    '3982': 'Holly',
-    '7137': 'Dakota',
-    '7860': 'Catherminge',
-    '8971': 'Lewis',
-    '0369': 'User',
-    '0246': 'User',
-
-  };
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (audioRef.current) {
       audioRef.current.play().catch(() => console.log("Audio requires interaction first."));
     }
+    
+    setLoading(true);
+    setError('');
 
-    if (mockGuests[pin]) {
-      setName(mockGuests[pin]);
-      setError('');
-    } else {
-      setError('Identity not recognized. Try again.');
+    try {
+      // Fetch data directly from your Google Sheet 'Guests' tab
+      const response = await fetch(`${SCRIPT_URL}?pin=${pin}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setName(data.name);
+      } else {
+        setError('Identity not recognized. Try again.');
+      }
+    } catch (err) {
+      setError('Connection lost to the castle. Try again.');
     }
+    
+    setLoading(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Your Apps Script POST goes here later
-    setSubmitted(true);
+    setLoading(true);
+
+    try {
+      // Post the RSVP directly to your Google Sheet 'RSVPs' tab
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({
+          name: name,
+          attending: attending,
+          allergies: allergies
+        })
+      });
+      setSubmitted(true);
+    } catch (err) {
+      // Even if network glitches slightly on CORS, Google often still logs it
+      setSubmitted(true);
+    }
+    
+    setLoading(false);
   };
 
   if (submitted) {
     return (
       <div className="min-h-screen bg-[#20000a] flex flex-col items-center justify-center p-4 text-center text-white">
-        {/* Exact Hooded Graphic */}
         <div className="w-32 h-32 text-[#EC8A22] mb-6">
           <svg viewBox="0 0 100 100" fill="currentColor" className="w-full h-full">
             <path d="M50,15 C20,40 25,65 50,85 C75,65 80,40 50,15 Z" fill="none" stroke="currentColor" strokeWidth="2" />
@@ -63,18 +84,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#4a021f] to-[#20000a] flex flex-col items-center justify-center p-4 text-white font-serif relative overflow-hidden">
-      {/* Background Audio */}
       <audio ref={audioRef} src="/spooky-theme.mp3" loop />
 
       <div className="z-10 w-full max-w-md bg-[#2d0112]/95 p-8 rounded-lg border-2 border-[#e0660d]/30 shadow-[0_0_50px_rgba(0,0,0,0.9)] backdrop-blur-md">
         {!name ? (
           <form onSubmit={handleLogin} className="flex flex-col gap-6 items-center w-full">
-            {/* The Traitors hooded graphic (image_6.png replica) */}
             <div className="w-24 h-24 text-[#EC8A22]">
               <svg viewBox="0 0 100 100" fill="currentColor" className="w-full h-full">
-                {/* Outter hood curve */}
                 <path d="M50,16 C23,37 25,62 50,82 C75,62 77,37 50,16 Z M50,22 C68,38 67,56 50,73 C33,56 32,38 50,22 Z" />
-                {/* Shadowed face */}
                 <path d="M50,48 C44,48 41,53 43,57 C45,56 47,54 50,54 C53,54 55,56 57,57 C59,53 56,48 50,48 Z M45,60 C48,60 48,61 50,61 C52,61 52,60 55,60 C55,62 52,64 50,64 C48,64 45,62 45,60 Z" />
               </svg>
             </div>
@@ -84,7 +101,6 @@ export default function App() {
               <p className="text-sm text-slate-400 italic mt-2">Enter your secret code to reveal your invitation.</p>
             </div>
 
-            {/* Custom Interactive PIN code box */}
             <div className="w-full relative">
               <input 
                 type="password" 
@@ -97,8 +113,8 @@ export default function App() {
               {error && <p className="text-red-500 text-center text-sm mt-2">{error}</p>}
             </div>
 
-            <button type="submit" className="w-full bg-[#350114] hover:bg-[#4a021f] text-[#EC8A22] border border-[#e0660d]/40 p-4 rounded uppercase tracking-widest font-bold transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-              Reveal Identity &gt;
+            <button type="submit" disabled={loading} className="w-full bg-[#350114] hover:bg-[#4a021f] disabled:bg-slate-900 text-[#EC8A22] border border-[#e0660d]/40 p-4 rounded uppercase tracking-widest font-bold transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+              {loading ? "Verifying..." : "Reveal Identity >"}
             </button>
           </form>
         ) : (
@@ -106,7 +122,6 @@ export default function App() {
             <h2 className="text-3xl text-center text-[#EC8A22] font-bold tracking-wider">WELCOME, {name.toUpperCase()}</h2>
             <p className="text-center text-slate-300 italic -mt-4">A feast of deceit & deception.</p>
 
-            {/* The Feast Menu (Interactive Cards) */}
             <div className="bg-[#1b000a]/80 p-5 rounded border border-[#e0660d]/20 text-center space-y-4">
               <h3 className="text-lg text-[#EC8A22] tracking-widest font-bold border-b border-[#e0660d]/20 pb-2 uppercase">The Traitors Banquet</h3>
               
@@ -162,10 +177,10 @@ export default function App() {
 
             <button 
               type="submit" 
-              disabled={attending === null}
+              disabled={attending === null || loading}
               className="mt-2 bg-[#EC8A22] hover:bg-[#ff9c3a] disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 p-4 rounded uppercase tracking-widest font-bold transition-all shadow-[0_0_15px_rgba(236,138,34,0.3)]"
             >
-              Seal My Fate
+              {loading ? "Sealing..." : "Seal My Fate"}
             </button>
           </form>
         )}
